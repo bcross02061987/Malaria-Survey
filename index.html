@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#173b35">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Village Survey</title>
+<style>
+:root{--green:#173b35;--green2:#24584e;--cream:#f4f5ef;--ink:#17231f;--muted:#68756f;--line:#dce3dd;--white:#fff;--gold:#e5b85c}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font:16px system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:var(--green);color:white;padding:22px 18px 18px;border-radius:0 0 22px 22px}
+header .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+h1{font-size:23px;margin:0}header p{margin:6px 0 0;color:#d7e6df;font-size:13px}
+main{max-width:680px;margin:0 auto;padding:16px 14px 42px}
+.tabs{display:flex;gap:8px;margin:15px 0}
+.tab{border:1px solid var(--line);background:white;color:var(--green);padding:10px 14px;border-radius:999px;font-weight:650}
+.tab.active{background:var(--green);color:white;border-color:var(--green)}
+.card{background:white;border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0;box-shadow:0 2px 8px #102c2010}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:#edf3ef;border-radius:13px;padding:14px}.stat strong{display:block;font-size:27px;color:var(--green)}.stat span{font-size:12px;color:var(--muted)}
+label{display:block;font-size:14px;font-weight:650;margin:15px 0 6px}
+input,select,textarea{width:100%;padding:13px 12px;border:1px solid #cbd6ce;border-radius:11px;background:#fff;font:inherit;color:var(--ink)}
+textarea{min-height:86px;resize:vertical}
+button{font:inherit;cursor:pointer}
+.primary{width:100%;border:0;border-radius:12px;background:var(--green);color:white;font-weight:700;padding:14px;margin-top:17px}
+.secondary{border:1px solid var(--green);color:var(--green);background:white;border-radius:11px;padding:11px 13px;font-weight:650}
+.danger{border-color:#c84e4e;color:#a32c2c}
+.small{font-size:12px;color:var(--muted);line-height:1.45}
+.hidden{display:none!important}.row{display:flex;gap:9px;flex-wrap:wrap}.row>*{flex:1}
+.item{border-bottom:1px solid var(--line);padding:12px 0}.item:last-child{border:0}
+.pill{font-size:11px;background:#e8f1eb;color:#24584e;padding:4px 8px;border-radius:999px}
+.notice{background:#fff8e8;border:1px solid #f0dfb6;padding:12px;border-radius:12px;font-size:13px;color:#665126}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:16px}
+</style>
+</head>
+<body>
+<header><div class="top"><div><h1>Village Survey</h1><p>Household data collection · Offline</p></div><span class="pill">OFFLINE READY</span></div></header>
+<main>
+<div class="tabs">
+<button class="tab active" data-tab="home">Overview</button>
+<button class="tab" data-tab="form">New survey</button>
+<button class="tab" data-tab="data">Responses & export</button>
+</div>
+<section id="home">
+<div class="card">
+<h2 style="margin:0 0 12px;font-size:18px">Collector setup</h2>
+<label for="collector">Collector name / code</label><input id="collector" placeholder="e.g. Collector 01">
+<label for="collectorPhone">Phone number *</label><input id="collectorPhone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" pattern="[6-9][0-9]{9}" required placeholder="10-digit mobile number"><p class="small">Enter a valid 10-digit Indian mobile number. This is required to save collector details and start a survey.</p>
+<button class="secondary" id="saveProfile">Save collector details</button>
+</div>
+<div class="stats">
+<div class="stat"><strong id="count">0</strong><span>Households on this phone</span></div>
+<div class="stat"><strong id="today">0</strong><span>Households collected today</span></div>
+</div>
+<div class="card"><h3 style="margin:0 0 8px">How it works</h3><p class="small">Each phone saves responses on that phone only. Export a backup file from every collector, then import those files on one phone and export the combined Excel workbook.</p></div>
+<div class="notice">Important: Do not clear browser data or uninstall the app before exporting a backup. This app does not send household data to a server.</div>
+</section>
+<section id="form" class="hidden">
+<div class="card">
+<h2 style="margin:0;font-size:19px">New household survey</h2>
+<p class="small">Enter household details, then complete the individual questions for every family member. The Head of Family is included as Member 1.</p>
+<form id="surveyForm">
+<label>1. Name of Village *</label><input name="village_name" required placeholder="Enter village name">
+<label>2. Name of Head of Family *</label><input name="household_head_name" required placeholder="Full name of Head of Family">
+<label>3. Number of family members (including Head of Family) *</label><input name="family_member_count" id="familyMemberCount" type="number" min="1" max="50" step="1" required placeholder="e.g. 4">
+<div id="membersContainer"></div>
+<div class="notice" style="margin-top:16px">Before starting, explain the purpose of the survey and obtain consent. Record the name and Questions 4–13 for every family member, including the Head of Family. Keep exported files secure and share them only with authorised people.</div>
+<button class="primary" type="submit">Save household survey</button>
+</form>
+</div>
+</section>
+<section id="data" class="hidden">
+<div class="card">
+<h2 style="margin:0 0 5px;font-size:19px">Responses & data sharing</h2>
+<p class="small">Export the Excel file for analysis. Use the backup file to transfer and merge data from other collectors.</p>
+<div class="row"><button class="secondary" id="xlsx">Export Excel (.xlsx)</button><button class="secondary" id="backup">Export backup (.json)</button></div>
+<label for="importFile">Import another collector's backup</label><input id="importFile" type="file" accept=".json,application/json">
+<p class="small">Imported responses are merged. Duplicate survey IDs are skipped.</p>
+</div>
+<div class="card">
+<div class="top" style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Saved responses</h3><span class="pill" id="responseCount">0 records</span></div>
+<div id="responseList" class="small" style="margin-top:8px">No responses saved yet.</div>
+</div>
+<div class="card">
+<h3 style="margin:0 0 8px">Device data</h3>
+<p class="small">Deleting records cannot be undone. Export a backup first.</p>
+<button class="secondary danger" id="clear">Delete all responses on this phone</button>
+</div>
+</section>
+<footer>Village Survey · Data stays on this device until you export or share it.</footer>
+</main>
+<script>
+const KEY='villageSurveyResponses_v2', PROFILE='villageSurveyProfile_v1';
+const $=id=>document.getElementById(id);
+let responses=load();
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return []}}
+function save(){localStorage.setItem(KEY,JSON.stringify(responses));render()}
+function profile(){try{return JSON.parse(localStorage.getItem(PROFILE)||'{}')}catch(e){return {}}}
+function saveProfile(){const name=$('collector').value.trim(),phone=$('collectorPhone').value.replace(/\D/g,'');if(!name){alert('Please enter the collector name / code.');$('collector').focus();return}if(!/^[6-9]\d{9}$/.test(phone)){alert('Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8 or 9.');$('collectorPhone').focus();return}const p={name,phone};localStorage.setItem(PROFILE,JSON.stringify(p));alert('Collector details saved on this phone.')}
+const p=profile();$('collector').value=p.name||'';$('collectorPhone').value=p.phone||'';
+$('saveProfile').onclick=saveProfile;
+function memberFields(i){
+ const head=i===1;
+ return `<div class="card member-card" data-member="${i}"><h3 style="margin:0 0 6px">Member ${i}${head?' · Head of Family':''}</h3>
+ <label>${head?'Name of Head of Family':'Name of family member'} *</label><input name="member_${i}_name" required placeholder="Full name">
+ <label>4. Age *</label><input name="member_${i}_age" type="number" min="0" max="120" required placeholder="Age in years">
+ <label>5. Sex *</label><select name="member_${i}_sex" required><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option><option>Prefer not to say</option></select>
+ <label>6. Educational Qualification *</label><select name="member_${i}_education" required><option value="">Select</option><option>No formal schooling</option><option>Primary</option><option>Middle</option><option>High school</option><option>Higher secondary</option><option>Graduate</option><option>Postgraduate</option><option>Technical / Professional</option><option>Other</option></select>
+ <label>7. Main Occupation *</label><input name="member_${i}_main_occupation" required placeholder="Enter main occupation">
+ <label>8. Secondary occupation, if any</label><input name="member_${i}_secondary_occupation" placeholder="Optional">
+ <label>9. No. of months spent in the farm / Jhum *</label><input name="member_${i}_jhum_months" type="number" min="0" max="12" required placeholder="0–12 months">
+ <label>10. Usual return-home frequency *</label><select name="member_${i}_home_frequency" id="member_${i}_home_frequency" required onchange="toggleIrregular(${i})"><option value="">Select</option><option>Daily</option><option>Every 2–3 days</option><option>Weekly</option><option>Monthly</option><option>Irregular</option></select>
+ <div id="member_${i}_irregular_wrap" class="hidden"><label>Specify irregular frequency *</label><input name="member_${i}_home_frequency_other" id="member_${i}_home_frequency_other" placeholder="Please specify"></div>
+ <label>11. Currently away from home (during this visit)? *</label><select name="member_${i}_currently_away" required><option value="">Select</option><option>Yes</option><option>No</option></select>
+ <label>12. Had fever during the 14 days before the survey? *</label><select name="member_${i}_fever_14_days" required><option value="">Select</option><option>Yes</option><option>No</option><option>Don't know</option></select>
+ <label>13. Has this person ever had malaria? *</label><select name="member_${i}_malaria_history" required><option value="">Select</option><option>Yes</option><option>No</option><option>Don't know</option></select>
+ </div>`;
+}
+function toggleIrregular(i){const sel=$(`member_${i}_home_frequency`),wrap=$(`member_${i}_irregular_wrap`),input=$(`member_${i}_home_frequency_other`);const show=sel.value==='Irregular';wrap.classList.toggle('hidden',!show);input.required=show;if(!show)input.value='';}
+$('familyMemberCount').addEventListener('input',()=>{
+ const raw=$('familyMemberCount').value,n=Math.min(50,Math.max(0,Number(raw)||0));
+ $('membersContainer').innerHTML=raw&&n>0?Array.from({length:n},(_,idx)=>memberFields(idx+1)).join(''):'';
+ const headName=$('surveyForm').elements.household_head_name.value.trim();
+ const firstMember=$('surveyForm').elements.member_1_name;
+ if(firstMember) firstMember.value=headName;
+});
+$('surveyForm').elements.household_head_name.addEventListener('input',()=>{
+ const firstMember=$('surveyForm').elements.member_1_name;
+ if(firstMember) firstMember.value=$('surveyForm').elements.household_head_name.value;
+});
+function showTab(tab){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));['home','form','data'].forEach(id=>$(id).classList.toggle('hidden',id!==tab));if(tab==='data')render()}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+$('surveyForm').addEventListener('submit',e=>{
+ e.preventDefault();const f=new FormData(e.target),p=profile();
+ if(!p.name||!p.phone||!/^[6-9]\d{9}$/.test(String(p.phone))){alert('Please enter the collector name and a valid 10-digit phone number in the Overview tab, then save collector details.');showTab('home');return}
+ const village=String(f.get('village_name')||'').trim(),head=f.get('household_head_name').trim(),count=Number(f.get('family_member_count'));
+ if(!village){alert('Please enter the village name.');return}
+ if(!head||!Number.isInteger(count)||count<1||count>50){alert('Enter a valid Head of Family name and family member count (1–50).');return}
+ if($('membersContainer').querySelectorAll('.member-card').length!==count){alert('Please enter the number of family members to display their questions.');return}
+ const householdId=crypto.randomUUID?crypto.randomUUID():('HH-'+Date.now()+'-'+Math.random().toString(16).slice(2));
+ const surveyDate=new Date().toISOString();
+ for(let i=1;i<=count;i++){
+  const get=k=>f.get(`member_${i}_${k}`);
+  if(get('home_frequency')==='Irregular'&&!String(get('home_frequency_other')||'').trim()){alert(`Please specify the irregular home-return frequency for Member ${i}.`);return}
+  responses.push({survey_id:(crypto.randomUUID?crypto.randomUUID():householdId+'-'+i),household_id:householdId,survey_date:surveyDate,collector:p.name,collector_phone:p.phone||'',village_name:village,household_head_name:head,family_member_count:count,member_number:i,is_head_of_family:i===1?'Yes':'No',member_name:String(get('name')||'').trim(),age:Number(get('age')),sex:get('sex'),educational_qualification:get('education'),main_occupation:String(get('main_occupation')||'').trim(),secondary_occupation:String(get('secondary_occupation')||'').trim(),jhum_months:Number(get('jhum_months')),home_return_frequency:get('home_frequency'),home_return_frequency_specify:String(get('home_frequency_other')||'').trim(),currently_away:get('currently_away'),fever_previous_14_days:get('fever_14_days'),ever_had_malaria:get('malaria_history')});
+ }
+ save();e.target.reset();$('membersContainer').innerHTML='';alert(`Household survey saved successfully for ${count} family member(s).`);showTab('home');
+});
+function render(){
+ const households=new Map();for(const r of responses){const id=r.household_id||r.survey_id;if(!households.has(id))households.set(id,r)}
+ $('count').textContent=households.size;
+ const today=new Date().toISOString().slice(0,10);$('today').textContent=[...households.values()].filter(r=>(r.survey_date||'').slice(0,10)===today).length;
+ $('responseCount').textContent=households.size+' households · '+responses.length+' members';
+ $('responseList').innerHTML=households.size?[...households.entries()].reverse().slice(0,12).map(([id,r])=>{const names=responses.filter(x=>(x.household_id||x.survey_id)===id).sort((a,b)=>(a.member_number||0)-(b.member_number||0)).map(x=>x.member_name).filter(Boolean);return `<div class="item"><strong>${esc(r.household_head_name||r.member_name||'Unnamed household')}</strong><br>Village: ${esc(r.village_name||'Not recorded')}<br>${esc(r.family_member_count||names.length||1)} family member(s) · ${esc(r.survey_date||'').slice(0,10)}<br><span class="small">Family members: ${names.map(esc).join(', ')||'Names not available'}<br>Collector: ${esc(r.collector||'')}</span></div>`}).join(''):'No household surveys saved yet.';
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function download(blob,name){const a=document.createElement('a');const u=URL.createObjectURL(blob);a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500)}
+$('backup').onclick=()=>{download(new Blob([JSON.stringify({app:'Village Survey',version:1,exported_at:new Date().toISOString(),responses},null,2)],{type:'application/json'}),'village-survey-backup-'+dateTag()+'.json')};
+$('importFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const obj=JSON.parse(await file.text());if(!Array.isArray(obj.responses))throw Error('Invalid backup file');const ids=new Set(responses.map(r=>r.survey_id));let added=0;for(const r of obj.responses){if(r.survey_id&&!ids.has(r.survey_id)){responses.push(r);ids.add(r.survey_id);added++}}save();alert(`Import complete. ${added} new response(s) added; duplicates skipped.`)}catch(err){alert('Could not import this file. Please select a Village Survey JSON backup.')}e.target.value=''};
+$('clear').onclick=()=>{if(confirm('Permanently delete all responses stored on this phone? Export a backup first.')){responses=[];save();alert('Responses deleted from this phone.')}};
+function dateTag(){return new Date().toISOString().slice(0,10).replaceAll('-','')}
+const columns=[['Survey ID','survey_id'],['Household ID','household_id'],['Survey date','survey_date'],['Collector','collector'],['Collector phone number','collector_phone'],['Name of Village','village_name'],['Name of Head of Family','household_head_name'],['Number of family members','family_member_count'],['Member number','member_number'],['Head of Family?','is_head_of_family'],['Family member name','member_name'],['Age','age'],['Sex','sex'],['Educational qualification','educational_qualification'],['Main occupation','main_occupation'],['Secondary occupation','secondary_occupation'],['Months spent in farm / Jhum','jhum_months'],['Usual home-return frequency','home_return_frequency'],['Specify irregular frequency','home_return_frequency_specify'],['Currently away from home during visit','currently_away'],['Fever in previous 14 days','fever_previous_14_days'],['Ever had malaria','ever_had_malaria']];
+function xml(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;')}
+function colName(n){let s='';while(n){let r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26)}return s}
+function crc32(bytes){let c=-1;for(let b of bytes){c^=b;for(let k=0;k<8;k++)c=(c>>>1)^((c&1)?0xEDB88320:0)}return(c^-1)>>>0}
+function u16(n){return[n&255,(n>>>8)&255]}function u32(n){return[n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255]}
+function zipStore(files){
+ const enc=new TextEncoder(),parts=[],central=[];let offset=0;
+ for(const [name,content] of Object.entries(files)){
+  const nb=enc.encode(name),data=enc.encode(content),crc=crc32(data);
+  const local=new Uint8Array([...u32(0x04034b50),...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(data.length),...u32(data.length),...u16(nb.length),...u16(0),...nb,...data]);
+  parts.push(local);
+  const cd=new Uint8Array([...u32(0x02014b50),...u16(20),...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(data.length),...u32(data.length),...u16(nb.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(offset),...nb]);
+  central.push(cd);offset+=local.length;
+ }
+ const csize=central.reduce((a,b)=>a+b.length,0),count=central.length;
+ const end=new Uint8Array([...u32(0x06054b50),...u16(0),...u16(0),...u16(count),...u16(count),...u32(csize),...u32(offset),...u16(0)]);
+ return new Blob([...parts,...central,end],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+function exportXlsx(){
+ const rows=[columns.map(c=>c[0]),...responses.map(r=>columns.map(c=>r[c[1]]??''))];
+ const sheet=rows.map((row,ri)=>'<row r="'+(ri+1)+'">'+row.map((v,ci)=>'<c r="'+colName(ci+1)+(ri+1)+'" t="inlineStr"><is><t xml:space="preserve">'+xml(v)+'</t></is></c>').join('')+'</row>').join('');
+ const files={
+ '[Content_Types].xml':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+ '_rels/.rels':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+ 'xl/workbook.xml':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Survey Responses" sheetId="1" r:id="rId1"/></sheets></workbook>',
+ 'xl/_rels/workbook.xml.rels':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
+ 'xl/worksheets/sheet1.xml':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>'+sheet+'</sheetData></worksheet>'
+ };
+ download(zipStore(files),'village-survey-responses-'+dateTag()+'.xlsx');
+}
+$('xlsx').onclick=exportXlsx;
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+render();
+</script>
+</body></html>
